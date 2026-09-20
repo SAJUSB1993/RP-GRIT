@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RP Grit Master & Specs</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <!-- Standalone Excel Parser for Browser/Offline execution -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: #131b2e;
+      --card-inner: #1e293b;
+      --accent-blue: #38bdf8;
+      --accent-cyan: #06b6d4;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-green: #10b981;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #24324f;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; padding-bottom: 50px; }
+
+    /* Colorful Top Header */
+    header {
+      text-align: center;
+      padding: 16px 12px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 50%, #064e3b 100%);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 20px -4px rgba(0,0,0,0.5);
+    }
+    header h1 { font-size: 1.45rem; font-weight: 800; background: linear-gradient(90deg, #38bdf8, #a855f7, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    header p { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* Navigation Tabs */
+    .tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 4px; }
+    .tab-btn {
+      flex: 1;
+      min-width: 95px;
+      padding: 10px 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.25s ease;
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      color: #fff;
+      border-color: #38bdf8;
+      box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+    }
+    .view-content { display: none; }
+    .view-content.active { display: block; }
+
+    /* Upload & Action Card */
+    .action-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn-row { display: flex; gap: 8px; }
+    .btn {
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.1s, filter 0.2s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-upload { flex: 2; background: linear-gradient(90deg, #10b981, #059669); color: white; }
+    .btn-reset { flex: 1; background: #334155; color: #cbd5e1; }
+    #fileInput { display: none; }
+    .status-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: #090d16;
+      border: 1px solid #1e293b;
+    }
+
+    /* Search Bar */
+    .search-box {
+      width: 100%;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      color: #fff;
+      margin-bottom: 14px;
+      outline: none;
+    }
+    .search-box:focus { border-color: var(--accent-cyan); box-shadow: 0 0 10px rgba(6,182,212,0.3); }
+
+    /* Specification Cards */
+    .spec-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .grade-badge {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent-cyan);
+      background: rgba(6,182,212,0.12);
+      padding: 3px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(6,182,212,0.3);
+    }
+    .ip-badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      background: #1e293b;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    .meta-tags {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+    }
+    .tag-box {
+      background: #090d16;
+      border-radius: 6px;
+      padding: 6px 10px;
+      border-left: 3px solid var(--accent-purple);
+    }
+    .tag-box span { display: block; font-size: 0.7rem; color: var(--text-muted); }
+    .tag-box strong { color: #f1f5f9; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align: center; }
+    th, td { border: 1px solid var(--border); padding: 7px 4px; }
+    th { background: #0c1322; color: #93c5fd; font-weight: 600; font-size: 0.72rem; }
+    td.mesh-head { font-weight: 700; color: #fff; background: rgba(30, 41, 59, 0.5); }
+    td.spec-val { color: #38bdf8; font-weight: 600; }
+
+    /* Mix Master UI */
+    .mix-control {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .mix-btn-group { display: flex; gap: 8px; margin: 10px 0; }
+    .mix-tab-pill {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid var(--border);
+      background: var(--card-inner);
+      color: var(--text-muted);
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .mix-tab-pill.active { background: var(--accent-amber); color: #000; border-color: var(--accent-amber); }
+    .component-card {
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .comp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .comp-title { font-weight: 700; font-size: 0.88rem; color: var(--accent-amber); }
+    .comp-ratio { width: 85px; padding: 5px 8px; font-size: 0.82rem; background: #1e293b; border: 1px solid var(--border); color: #fff; border-radius: 4px; text-align: right; }
+    .psd-inputs { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; }
+    .psd-col { display: flex; flex-direction: column; align-items: center; }
+    .psd-col label { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 2px; }
+    .psd-col input { width: 100%; padding: 5px 2px; text-align: center; font-size: 0.75rem; background: #1e293b; border: 1px solid var(--border); color: #fff; border-radius: 4px; }
+
+    /* Reference Cards */
+    .ref-header {
+      background: linear-gradient(90deg, #1e1b4b, #312e81);
+      color: #c7d2fe;
+      padding: 8px 12px;
+      border-radius: 8px 8px 0 0;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>RP GRIT SPEC MASTER</h1>
+    <p>Plant Specs • Mix Simulator • FEPA & JIS Standards</p>
+  </header>
+
+  <!-- Navigation -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchView('specsView', this)">📋 RP Specs</button>
+    <button class="tab-btn" onclick="switchView('mixView', this)">⚗️ Mix Master</button>
+    <button class="tab-btn" onclick="switchView('fepaView', this)">📐 FEPA / JIS</button>
+  </div>
+
+  <!-- VIEW 1: RP SPECIFICATIONS -->
+  <div id="specsView" class="view-content active">
+    <div class="action-card">
+      <div class="btn-row">
+        <label for="fileInput" class="btn btn-upload">📁 Upload "RP GRITS SPECS.xlsx"</label>
+        <button id="resetBtn" class="btn btn-reset">Default</button>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx, .xls" />
+      <div class="status-strip">
+        <span id="dataStatus">● Default Specs Active</span>
+        <span id="recordCount" style="color: var(--accent-cyan); font-weight:700;">0 Loaded</span>
+      </div>
+    </div>
+
+    <input type="text" id="search" class="search-box" placeholder="Search Grade (e.g., 7/12, 14/30, JT 75, 100/F)..." />
+    <div id="specsList"></div>
+  </div>
+
+  <!-- VIEW 2: MIX MASTER SIMULATOR -->
+  <div id="mixView" class="view-content">
+    <div class="mix-control">
+      <h3 style="font-size: 1.05rem; color: #fff;">Blend Proportion Optimizer</h3>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px;">Select how many components you are mixing (2, 3, or 4):</p>
+      
+      <div class="mix-btn-group">
+        <button class="mix-tab-pill active" onclick="setMixCount(2, this)">2 Mix</button>
+        <button class="mix-tab-pill" onclick="setMixCount(3, this)">3 Mix</button>
+        <button class="mix-tab-pill" onclick="setMixCount(4, this)">4 Mix</button>
+      </div>
+
+      <div id="componentContainers"></div>
+
+      <button class="btn" style="width: 100%; background: linear-gradient(90deg, #f59e0b, #d97706); color: #000; font-weight: 800; margin-top: 8px;" onclick="calculateMix()">⚡ Compute Resulting Blend PSD</button>
+    </div>
+
+    <!-- Blended Output Result -->
+    <div class="spec-card" id="mixResultCard" style="display: none; border-color: var(--accent-amber);">
+      <div class="card-top">
+        <span class="grade-badge" style="color: var(--accent-amber); border-color: var(--accent-amber); background: rgba(245,158,11,0.15);">Combined Composite Blend</span>
+        <span class="ip-badge" id="mixTotalWeightBadge">Total: 100%</span>
+      </div>
+      <div class="table-wrap">
+        <table id="blendTable">
+          <thead>
+            <tr>
+              <th>Fraction</th>
+              <th>S1</th>
+              <th>S2</th>
+              <th>S3</th>
+              <th>S4</th>
+              <th>S5</th>
+              <th>PAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr id="blendRetainedRow"></tr>
+            <tr id="blendCumRow" style="color: var(--accent-green); font-weight: 700;"></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: FEPA & JIS STANDARDS -->
+  <div id="fepaView" class="view-content">
+    
+    <!-- FEPA F -->
+    <div style="margin-bottom: 16px;">
+      <div class="ref-header">FEPA F-Series (Bonded Abrasives / Sanding Wheels)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Grit</th><th>Median D50 (μm)</th><th>Standard Range</th><th>Approx Mesh</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mesh-head">F12</td><td class="spec-val">1700 - 2000</td><td>1.7 - 2.0 mm</td><td>10/14</td></tr>
+            <tr><td class="mesh-head">F16</td><td class="spec-val">1180 - 1400</td><td>1.18 - 1.4 mm</td><td>14/18</td></tr>
+            <tr><td class="mesh-head">F24</td><td class="spec-val">685 - 725</td><td>600 - 850 μm</td><td>20/30</td></tr>
+            <tr><td class="mesh-head">F36</td><td class="spec-val">500 - 525</td><td>425 - 600 μm</td><td>35/45</td></tr>
+            <tr><td class="mesh-head">F60</td><td class="spec-val">250 - 265</td><td>212 - 300 μm</td><td>60/70</td></tr>
+            <tr><td class="mesh-head">F80</td><td class="spec-val">180 - 190</td><td>150 - 212 μm</td><td>80/100</td></tr>
+            <tr><td class="mesh-head">F120</td><td class="spec-val">102 - 109</td><td>90 - 125 μm</td><td>120/140</td></tr>
+            <tr><td class="mesh-head">F240 (Micro)</td><td class="spec-val">44.5 ± 2.0</td><td>40 - 50 μm</td><td>325/400</td></tr>
+            <tr><td class="mesh-head">F400 (Micro)</td><td class="spec-val">17.3 ± 1.0</td><td>15 - 20 μm</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FEPA P -->
+    <div style="margin-bottom: 16px;">
+      <div class="ref-header" style="background: linear-gradient(90deg, #064e3b, #047857); color: #a7f3d0;">FEPA P-Series (Coated Abrasives / Sandpaper)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Grit</th><th>Median D50 (μm)</th><th>Range (μm)</th><th>Typical Sieve</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mesh-head">P24</td><td class="spec-val">764</td><td>710 - 850</td><td>20/25</td></tr>
+            <tr><td class="mesh-head">P36</td><td class="spec-val">538</td><td>500 - 600</td><td>30/40</td></tr>
+            <tr><td class="mesh-head">P60</td><td class="spec-val">269</td><td>250 - 300</td><td>50/60</td></tr>
+            <tr><td class="mesh-head">P100</td><td class="spec-val">162</td><td>150 - 180</td><td>80/100</td></tr>
+            <tr><td class="mesh-head">P180</td><td class="spec-val">82</td><td>75 - 90</td><td>170/200</td></tr>
+            <tr><td class="mesh-head">P400 (Micro)</td><td class="spec-val">35.0 ± 1.5</td><td>30 - 40</td><td>-</td></tr>
+            <tr><td class="mesh-head">P1000 (Micro)</td><td class="spec-val">18.3 ± 1.0</td><td>16 - 20</td><td>-</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- JIS Standard -->
+    <div style="margin-bottom: 16px;">
+      <div class="ref-header" style="background: linear-gradient(90deg, #7c2d12, #c2410c); color: #fed7aa;">JIS R6001 (Japanese Industrial Standard)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>JIS Grit #</th><th>D50 Median (μm)</th><th>Allowed Band (μm)</th><th>Classification</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="mesh-head">#24</td><td class="spec-val">710</td><td>600 - 850</td><td>Macro</td></tr>
+            <tr><td class="mesh-head">#60</td><td class="spec-val">250</td><td>212 - 300</td><td>Macro</td></tr>
+            <tr><td class="mesh-head">#120</td><td class="spec-val">106</td><td>90 - 125</td><td>Macro</td></tr>
+            <tr><td class="mesh-head">#240</td><td class="spec-val">57.0 ± 3.0</td><td>50 - 65</td><td>Micro</td></tr>
+            <tr><td class="mesh-head">#400</td><td class="spec-val">30.0 ± 2.0</td><td>25 - 35</td><td>Micro</td></tr>
+            <tr><td class="mesh-head">#800</td><td class="spec-val">14.0 ± 1.0</td><td>12 - 16</td><td>Micro</td></tr>
+            <tr><td class="mesh-head">#1500</td><td class="spec-val">8.0 ± 0.6</td><td>7 - 9.5</td><td>Micro</td></tr>
+            <tr><td class="mesh-head">#3000</td><td class="spec-val">4.0 ± 0.5</td><td>3 - 5</td><td>Micro</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Tab View Switcher
+    function switchView(viewId, btn) {
+      document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Default Seed Dataset
+    const initialSpecs = [
+      { grade: "7/12", ipId: "IP-SRP 7/12 V2", bd: "1.37 Min", mi: "0.06 Max", sieves: [{name:"S1", mesh:"6", spec:"0-10"}, {name:"S2", mesh:"8", spec:"15-30"}, {name:"S3", mesh:"10", spec:"15-30"}, {name:"S4", mesh:"14", spec:"40-60"}, {name:"S5", mesh:"16", spec:"15 Max"}, {name:"PAN", mesh:"-16", spec:"5 Max"}] },
+      { grade: "14/30", ipId: "IP-SRP 14/30 V2", bd: "1.56 MIN", mi: "0.06 Max", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"12", spec:"0"}, {name:"S3", mesh:"18", spec:"30-40"}, {name:"S4", mesh:"30", spec:"80-90 CUM"}, {name:"S5", mesh:"40", spec:"10 MAX"}, {name:"PAN", mesh:"-40", spec:"10 MAX"}] },
+      { grade: "14/28 CAL", ipId: "IP-SRP 14/28", bd: "1.5 MIN", mi: "0.15 MAX", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"8", spec:"0"}, {name:"S3", mesh:"14", spec:"10 MAX"}, {name:"S4", mesh:"30", spec:"80 MIN"}, {name:"S5", mesh:"40", spec:"95-100 CUM"}, {name:"PAN", mesh:"-40", spec:"10 MAX"}] },
+      { grade: "-10+35", ipId: "IP-SREF -10+35", bd: "1.5 MIN", mi: "0.08 MAX", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"-", spec:"-"}, {name:"S3", mesh:"10", spec:"2 MAX"}, {name:"S4", mesh:"20", spec:"75-90"}, {name:"S5", mesh:"35", spec:"5-10"}, {name:"PAN", mesh:"-35", spec:"0-5"}] },
+      { grade: "-20+70", ipId: "IP-SREF -20+70", bd: "1.6 MIN", mi: "0.08 MAX", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"20", spec:"0-3"}, {name:"S3", mesh:"30", spec:"9-43"}, {name:"S4", mesh:"50", spec:"39-65"}, {name:"S5", mesh:"70", spec:"5-32"}, {name:"PAN", mesh:"-70", spec:"0-8"}] },
+      { grade: "1-3 MM", ipId: "IP-SRP 1-3MM", bd: "-", mi: "0.15 MAX", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"6", spec:"3 MAX"}, {name:"S3", mesh:"7", spec:"10 MAX"}, {name:"S4", mesh:"16", spec:"80-100 CUM"}, {name:"S5", mesh:"18", spec:"97-100 CUM"}, {name:"PAN", mesh:"-18", spec:"5 Max"}] },
+      { grade: "30/90 GEN", ipId: "IP-CRUCI 30/90 GEN", bd: "1.5 MIN", mi: "0.4 MAX", sieves: [{name:"S1", mesh:"-", spec:"-"}, {name:"S2", mesh:"-", spec:"-"}, {name:"S3", mesh:"20", spec:"0"}, {name:"S4", mesh:"30", spec:"5 MAX"}, {name:"S5", mesh:"80", spec:"90 MIN"}, {name:"PAN", mesh:"-80", spec:"5 Max"}] },
+      { grade: "JT 75", ipId: "IP-CRUCI JT-75", bd: "-", mi: "0.2 MAX", sieves: [{name:"S1", mesh:"18", spec:"-"}, {name:"S2", mesh:"45", spec:"1 MAX"}, {name:"S3", mesh:"80", spec:"53-67"}, {name:"S4", mesh:"120", spec:"20-40"}, {name:"S5", mesh:"200", spec:"5-15"}, {name:"PAN", mesh:"-200", spec:"3 MAX"}] }
+    ];
+
+    let currentSpecs = [];
+
+    // Parse Uploaded Excel Workbook
+    function parseExcel(sheet) {
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      const parsed = [];
+      let i = 0;
+      while (i < rows.length) {
+        const row = rows[i];
+        if (row && (row.includes("BD") || row.includes("S1"))) break;
+        i++;
+      }
+      i++;
+      while (i < rows.length) {
+        const r1 = rows[i] || [];
+        const r2 = rows[i + 1] || [];
+        const gradeName = (r1[0] !== undefined && r1[0] !== null) ? String(r1[0]).trim() : '';
+
+        if (gradeName && gradeName.toUpperCase() !== "GRADE" && (r1[1] || r1[3] || r1[4] || r1[9])) {
+          const sieveNames = ["S1", "S2", "S3", "S4", "S5", "PAN"];
+          const sieves = [];
+          for (let s = 0; s < 6; s++) {
+            const col = 3 + s;
+            sieves.push({
+              name: sieveNames[s],
+              mesh: (r1[col] !== undefined && r1[col] !== null) ? String(r1[col]).trim() : "-",
+              spec: (r2[col] !== undefined && r2[col] !== null) ? String(r2[col]).trim() : "-"
+            });
+          }
+          parsed.push({
+            grade: gradeName,
+            bd: r1[1] ? String(r1[1]).trim() : "-",
+            mi: r1[2] ? String(r1[2]).trim() : "-",
+            ipId: r1[9] ? String(r1[9]).trim() : "-",
+            sieves: sieves
+          });
+          i += 2;
+        } else {
+          i += 1;
+        }
+      }
+      return parsed;
+    }
+
+    function renderCards(list) {
+      const el = document.getElementById('specsList');
+      if (!list.length) {
+        el.innerHTML = '<div style="text-align:center; color:#94a3b8; padding:30px;">No specifications found.</div>';
+        return;
+      }
+      el.innerHTML = list.map(item => `
+        <div class="spec-card">
+          <div class="card-top">
+            <span class="grade-badge">${item.grade}</span>
+            <span class="ip-badge">${item.ipId}</span>
+          </div>
+          <div class="meta-tags">
+            <div class="tag-box"><span>Bulk Density (BD)</span><strong>${item.bd}</strong></div>
+            <div class="tag-box"><span>Magnetic Iron (MI)</span><strong>${item.mi}</strong></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>${item.sieves.map(s => `<th>${s.name}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                <tr>${item.sieves.map(s => `<td class="mesh-head">${s.mesh}</td>`).join('')}</tr>
+                <tr>${item.sieves.map(s => `<td class="spec-val">${s.spec}</td>`).join('')}</tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function initData() {
+      const saved = localStorage.getItem('rp_grit_custom_specs');
+      if (saved) {
+        try {
+          currentSpecs = JSON.parse(saved);
+          document.getElementById('dataStatus').innerHTML = '<span style="color:#10b981; font-weight:700;">● Custom Excel Active</span>';
+        } catch (e) { currentSpecs = initialSpecs; }
+      } else {
+        currentSpecs = initialSpecs;
+        document.getElementById('dataStatus').textContent = '● Preset Dataset Active';
+      }
+      document.getElementById('recordCount').textContent = `${currentSpecs.length} Grades`;
+      renderCards(currentSpecs);
+    }
+
+    // Excel Upload Handler
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const parsed = parseExcel(wb.Sheets[wb.SheetNames[0]]);
+          if (parsed.length > 0) {
+            currentSpecs = parsed;
+            localStorage.setItem('rp_grit_custom_specs', JSON.stringify(currentSpecs));
+            document.getElementById('dataStatus').innerHTML = '<span style="color:#10b981; font-weight:700;">● File Loaded</span>';
+            document.getElementById('recordCount').textContent = `${currentSpecs.length} Grades`;
+            renderCards(currentSpecs);
+            alert(`Loaded ${parsed.length} grit specifications from "${file.name}"!`);
+          } else {
+            alert('Could not detect specs rows. Check sheet layout.');
+          }
+        } catch (err) {
+          alert('Error reading Excel: ' + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (confirm('Revert back to default dataset?')) {
+        localStorage.removeItem('rp_grit_custom_specs');
+        initData();
+      }
+    });
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = currentSpecs.filter(s =>
+        s.grade.toLowerCase().includes(q) || (s.ipId && s.ipId.toLowerCase().includes(q))
+      );
+      renderCards(filtered);
+    });
+
+    // ---------------- MIX MASTER LOGIC (2, 3, 4 BLENDING) ----------------
+    let mixCount = 2;
+
+    function setMixCount(count, btn) {
+      mixCount = count;
+      document.querySelectorAll('.mix-tab-pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderMixInputs();
+    }
+
+    function renderMixInputs() {
+      const container = document.getElementById('componentContainers');
+      let html = '';
+      const defaultWeights = { 2: [60, 40], 3: [50, 30, 20], 4: [40, 30, 20, 10] };
+      const weights = defaultWeights[mixCount] || [];
+
+      for (let i = 1; i <= mixCount; i++) {
+        html += `
+          <div class="component-card">
+            <div class="comp-header">
+              <span class="comp-title">Component #${i}</span>
+              <div>
+                <label style="font-size:0.7rem; color:var(--text-muted); margin-right:4px;">Ratio (%):</label>
+                <input type="number" class="comp-ratio" id="mix_ratio_${i}" value="${weights[i-1] || 0}" />
+              </div>
+            </div>
+            <div class="psd-inputs">
+              <div class="psd-col"><label>S1 %</label><input type="number" id="m_${i}_s1" value="0" /></div>
+              <div class="psd-col"><label>S2 %</label><input type="number" id="m_${i}_s2" value="${i===1 ? 25 : 5}" /></div>
+              <div class="psd-col"><label>S3 %</label><input type="number" id="m_${i}_s3" value="${i===1 ? 45 : 20}" /></div>
+              <div class="psd-col"><label>S4 %</label><input type="number" id="m_${i}_s4" value="${i===1 ? 20 : 45}" /></div>
+              <div class="psd-col"><label>S5 %</label><input type="number" id="m_${i}_s5" value="${i===1 ? 8 : 20}" /></div>
+              <div class="psd-col"><label>PAN %</label><input type="number" id="m_${i}_pan" value="${i===1 ? 2 : 10}" /></div>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
+    function calculateMix() {
+      let totalWeight = 0;
+      const ratios = [];
+      for (let i = 1; i <= mixCount; i++) {
+        const r = parseFloat(document.getElementById(`mix_ratio_${i}`).value) || 0;
+        ratios.push(r);
+        totalWeight += r;
+      }
+
+      if (totalWeight <= 0) {
+        alert('Please enter valid proportion weights for the components.');
+        return;
+      }
+
+      const fractionKeys = ['s1', 's2', 's3', 's4', 's5', 'pan'];
+      const blend = { s1: 0, s2: 0, s3: 0, s4: 0, s5: 0, pan: 0 };
+
+      for (let i = 1; i <= mixCount; i++) {
+        const factor = ratios[i-1] / totalWeight;
+        fractionKeys.forEach(k => {
+          const val = parseFloat(document.getElementById(`m_${i}_${k}`).value) || 0;
+          blend[k] += val * factor;
+        });
+      }
+
+      // Display result
+      document.getElementById('mixResultCard').style.display = 'block';
+      document.getElementById('mixTotalWeightBadge').textContent = `Total Input: ${totalWeight}`;
+
+      let cum = 0;
+      const rowRetained = `<td><strong>Retained %</strong></td>` + fractionKeys.map(k => `<td>${blend[k].toFixed(2)}%</td>`).join('');
+      const rowCum = `<td><strong>Cumulative %</strong></td>` + fractionKeys.map(k => {
+        cum += blend[k];
+        return `<td>${cum.toFixed(2)}%</td>`;
+      }).join('');
+
+      document.getElementById('blendRetainedRow').innerHTML = rowRetained;
+      document.getElementById('blendCumRow').innerHTML = rowCum;
+    }
+
+    // Initialize View
+    initData();
+    renderMixInputs();
+
+    // Register ServiceWorker for offline operation
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+</body>
+</html>
